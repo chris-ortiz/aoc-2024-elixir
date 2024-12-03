@@ -22,3 +22,20 @@ distance =
   |> Enum.sum()
 
 IO.puts(distance)
+
+frequencies = right |> Enum.frequencies()
+
+similarity =
+  left
+  |> Enum.map(fn el ->
+    count = frequencies[el]
+
+    if count == nil do
+      0
+    else
+      count * el
+    end
+  end)
+  |> Enum.sum()
+
+IO.puts(similarity)
