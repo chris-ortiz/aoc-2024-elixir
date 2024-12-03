@@ -2,7 +2,20 @@ defmodule Day2 do
   def puzzle(content) do
     safe_reports =
       pre_process(content)
-      |> Enum.filter(&is_safe/1)
+      |> Enum.filter(fn levels ->
+        if !is_safe(levels) do
+          is_safe =
+            0..(length(levels) - 1)
+            |> Enum.any?(fn i ->
+              sublist = List.delete_at(levels, i)
+              is_safe(sublist)
+            end)
+
+          is_safe
+        else
+          true
+        end
+      end)
       |> Enum.count()
 
     IO.puts(safe_reports)
