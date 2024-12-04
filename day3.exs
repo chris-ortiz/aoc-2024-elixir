@@ -4,9 +4,24 @@ defmodule Day3 do
 
     res =
       collect_tokens(c, [])
-      |> Enum.reduce(0, fn {num1, num2}, acc -> acc + num1 * num2 end)
+      |> Enum.reverse()
+      |> Enum.reduce({0, true}, fn token, {sum, enabled} ->
+        case token do
+          {num1, num2} ->
+            case enabled do
+              true -> {sum + num1 * num2, true}
+              false -> {sum, false}
+            end
 
-    IO.puts(res)
+          :do ->
+            {sum, true}
+
+          :dont ->
+            {sum, false}
+        end
+      end)
+
+    IO.inspect(res)
   end
 
   def collect_tokens(content, tokens) do
@@ -16,6 +31,9 @@ defmodule Day3 do
 
       {num1, num2, remaining_content} ->
         collect_tokens(remaining_content, [{num1, num2} | tokens])
+
+      {do_or_dont, remaining_content} ->
+        collect_tokens(remaining_content, [do_or_dont | tokens])
     end
   end
 
@@ -25,17 +43,35 @@ defmodule Day3 do
 
   def tokenize([char | rest]) do
     case char do
-      ?m ->
-        case mul(rest) do
-          :not_found ->
-            tokenize(rest)
+      ?d ->
+        with :not_found <- do_or_dont(rest) do
+          tokenize(rest)
+        else
+          res -> res
+        end
 
-          res ->
-            res
+      ?m ->
+        with :not_found <- mul(rest) do
+          tokenize(rest)
+        else
+          res -> res
         end
 
       _ ->
         tokenize(rest)
+    end
+  end
+
+  def do_or_dont(content) do
+    case content do
+      [?o, ?(, ?) | rest] ->
+        {:do, rest}
+
+      [?o, ?n, ?', ?t, ?(, ?) | rest] ->
+        {:dont, rest}
+
+      _ ->
+        :not_found
     end
   end
 
