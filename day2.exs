@@ -3,6 +3,7 @@ defmodule Day2 do
     safe_reports =
       pre_process(content)
       |> Enum.filter(fn levels ->
+        # is_safe(levels)
         if !is_safe(levels) do
           is_safe =
             0..(length(levels) - 1)
@@ -63,7 +64,7 @@ defmodule Day2 do
   end
 end
 
-case File.read("input2.txt") do
+case File.read("input_dominik.txt") do
   {:ok, content} -> Day2.puzzle(content)
   {:error, _} -> IO.puts("Failed to read file")
 end
