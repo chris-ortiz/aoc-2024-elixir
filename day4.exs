@@ -8,11 +8,11 @@ defmodule Day4 do
     rows = length(board)
     cols = length(List.first(board))
 
-    count =
+    {count1, count2} =
       for i <- 0..(rows - 1),
           j <- 0..(cols - 1),
-          reduce: 0 do
-        count ->
+          reduce: {0, 0} do
+        {count1, count2} ->
           current_char = Enum.at(board, i) |> Enum.at(j)
 
           case current_char do
@@ -27,14 +27,37 @@ defmodule Day4 do
                   end
                 end)
 
-              count + search_count
+              {count1 + search_count, count2}
+
+            ?M ->
+              if search(~c"AS", board, i, j, :right_down) &&
+                   ((Enum.at(board, i) |> Enum.at(j + 2) == ?S &&
+                       search(~c"AM", board, i, j + 2, :left_down)) ||
+                      (Enum.at(board, i) |> Enum.at(j + 2) == ?M &&
+                         search(~c"AS", board, i, j + 2, :left_down))) do
+                {count1, count2 + 1}
+              else
+                {count1, count2}
+              end
+
+            ?S ->
+              if search(~c"AM", board, i, j, :right_down) &&
+                   ((Enum.at(board, i) |> Enum.at(j + 2) == ?S &&
+                       search(~c"AM", board, i, j + 2, :left_down)) ||
+                      (Enum.at(board, i) |> Enum.at(j + 2) == ?M &&
+                         search(~c"AS", board, i, j + 2, :left_down))) do
+                {count1, count2 + 1}
+              else
+                {count1, count2}
+              end
 
             _ ->
-              count
+              {count1, count2}
           end
       end
 
-    IO.inspect(count)
+    IO.puts("XMAS: " <> Integer.to_string(count1))
+    IO.puts("X-MAS: " <> Integer.to_string(count2))
   end
 
   def search(search_term, board, i, j, direction) do
