@@ -5,11 +5,15 @@ defmodule Day7 do
     IO.inspect(sum)
   end
 
+  def concat(a, b) do
+    (Integer.to_string(a) <> Integer.to_string(b))
+    |> then(&Integer.parse/1)
+    |> then(fn {i, _} -> i end)
+  end
+
   def calc({expected_result, params}) do
     [first | rest] = params
     results = solve(first, rest)
-
-    IO.inspect(results)
 
     if Enum.find(results, &(&1 == expected_result)) != nil do
       expected_result
@@ -23,9 +27,12 @@ defmodule Day7 do
       [last] ->
         results = [current * last]
         results = [current + last | results]
+        results = [concat(current, last) | results]
 
       [first | rest] ->
-        solve(first * current, rest) ++ solve(first + current, rest)
+        solve(first * current, rest) ++
+          solve(first + current, rest) ++
+          solve(concat(current, first), rest)
     end
   end
 
