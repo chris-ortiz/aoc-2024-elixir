@@ -7,7 +7,7 @@ defmodule Day7 do
 
   def calc({expected_result, params}) do
     [first | rest] = params
-    results = solve(first, rest, [])
+    results = solve(first, rest)
 
     IO.inspect(results)
 
@@ -18,14 +18,14 @@ defmodule Day7 do
     end
   end
 
-  def solve(current, rest, results) do
+  def solve(current, rest) do
     case rest do
       [last] ->
-        results = [current * last | results]
+        results = [current * last]
         results = [current + last | results]
 
       [first | rest] ->
-        solve(first * current, rest, results) ++ solve(first + current, rest, results)
+        solve(first * current, rest) ++ solve(first + current, rest)
     end
   end
 
