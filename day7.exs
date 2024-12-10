@@ -15,7 +15,7 @@ defmodule Day7 do
     [first | rest] = params
     results = solve(first, rest)
 
-    if Enum.find(results, &(&1 == expected_result)) != nil do
+    if Enum.any?(results, &(&1 == expected_result)) do
       expected_result
     else
       0
@@ -25,9 +25,7 @@ defmodule Day7 do
   def solve(current, rest) do
     case rest do
       [last] ->
-        results = [current * last]
-        results = [current + last | results]
-        results = [concat(current, last) | results]
+        [current * last, current + last, concat(current, last)]
 
       [first | rest] ->
         solve(first * current, rest) ++
