@@ -18,14 +18,8 @@ defmodule Day9 do
       end)
 
     IO.puts("working...")
-    optimized_segments = defragment(0, length(segments) - 1, segments)
+    optimized_segments = fragment(0, 0, segments)
     IO.inspect(optimized_segments)
-
-    FileUtils.write_integers_to_file("segments_temp.txt", segments)
-    FileUtils.write_integers_to_file("optimized_segments_temp.txt", optimized_segments)
-
-    IO.inspect(checksum(optimized_segments))
-
     IO.puts("done!")
   end
 
@@ -42,87 +36,78 @@ defmodule Day9 do
     end)
   end
 
-  def defragment(i, j, segments) do
+  def size(segments, i, direction \\ :forward) do
+    segments =
+      case direction do
+        :forward ->
+          Enum.slice(segments, i, length(segments) - 1)
+
+        :backwards ->
+          Enum.split(segments, i + 1) |> then(fn {list, _} -> list end) |> Enum.reverse()
+      end
+
+    {_, length} =
+      Enum.reduce_while(segments, {0, 1}, fn segment, {index, acc} ->
+        if index < length(segments) &&
+             segment == Enum.at(segments, index + 1) do
+          {:cont, {index + 1, acc + 1}}
+        else
+          {:halt, {index, acc}}
+        end
+      end)
+
+    length
+  end
+
+  def replace(segments, left_index, right_index, right_size) do
+    new_val = Enum.at(segments, right_index)
+
+    segments =
+      for i <- left_index..(left_index + right_size - 1),
+          reduce: segments do
+        list ->
+          list = List.replace_at(list, i, new_val)
+          list
+      end
+
+    for i <- right_index..(right_index - right_size + 1)//-1,
+        reduce: segments do
+      list ->
+        list = List.replace_at(list, i, -1)
+        list
+    end
+  end
+
+  # part 1
+  def fragment(i, j, segments) do
     if i >= j do
-      IO.inspect(segments)
       segments
     else
       case Enum.at(segments, i) do
         -1 ->
           if Enum.at(segments, j) != -1 do
             new_list =
-              fast_replace(segments, i, Enum.at(segments, j))
-              |> fast_replace(j, -1)
+              replace(segments, i, Enum.at(segments, j))
+              |> replace(j, -1)
 
-            defragment(i + 1, j - 1, new_list)
+            fragment(i + 1, j - 1, new_list)
           else
-            defragment(i, j - 1, segments)
+            fragment(i, j - 1, segments)
           end
 
         _ ->
           if Enum.at(segments, j) == -1 do
-            defragment(i + 1, j - 1, segments)
+            fragment(i + 1, j - 1, segments)
           else
-            defragment(i + 1, j, segments)
+            fragment(i + 1, j, segments)
           end
       end
     end
   end
 
-  def fast_replace(list, i, new_value) do
+  def replace(list, i, new_value) do
     {before, [_old | after_old]} = Enum.split(list, i)
     before ++ [new_value] ++ after_old
-  end
-end
-
-defmodule FileUtils do
-  @doc """
-  Writes an array of integers to a file.
-
-  ## Parameters
-    - file_path: The path to the file where integers will be written
-    - integers: A list of integers to be written to the file
-
-  ## Returns
-    - :ok if the file is successfully written
-    - {:error, reason} if there's an error writing the file
-  """
-  def write_integers_to_file(file_path, integers) do
-    # Convert integers to strings and join with newlines
-    content =
-      Enum.map(integers, &Integer.to_string/1)
-      |> Enum.join("\n")
-
-    # Write the content to the file
-    File.write(file_path, content)
-  end
-
-  @doc """
-  Writes an array of integers to a file with additional options.
-
-  ## Parameters
-    - file_path: The path to the file where integers will be written
-    - integers: A list of integers to be written to the file
-    - opts: A keyword list of additional options
-      - encoding: The file encoding (default: :utf8)
-      - append: Whether to append to the file (default: false)
-
-  ## Returns
-    - :ok if the file is successfully written
-    - {:error, reason} if there's an error writing the file
-  """
-  def write_integers_to_file(file_path, integers, opts) do
-    # Convert integers to strings and join with newlines
-    content =
-      Enum.map(integers, &Integer.to_string/1)
-      |> Enum.join("\n")
-
-    # Merge default options with provided options
-    default_opts = [encoding: :utf8, append: false]
-    final_opts = Keyword.merge(default_opts, opts)
-
-    # Write the content to the file with specified options
-    File.write(file_path, content, final_opts)
   end
 end
 
