@@ -15,7 +15,8 @@ defmodule Day10 do
           if height == 0 do
             trails =
               follow_trail(-1, grid, row, col, max_rows, max_cols, MapSet.new())
-              |> Enum.uniq()
+              # for part 1 dedup
+              # |> Enum.uniq()
               |> Enum.count()
 
             # IO.inspect(trails)
