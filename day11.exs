@@ -2,13 +2,48 @@ defmodule Day11 do
   def puzzle(content) do
     stones = Parser.parse(content)
 
+    part1(stones)
+    part2(stones)
+  end
+
+  def part2(stones) do
+    stones = stones |> Enum.map(&{&1, 1}) |> Map.new()
+
+    stones =
+      0..74
+      |> Enum.reduce(stones, fn _, stones ->
+        blink_part2(stones)
+      end)
+
+    sum = Map.values(stones) |> Enum.sum()
+
+    IO.puts("Part 2: #{sum}, Keys: #{length(Map.keys(stones))}")
+  end
+
+  def part1(stones) do
     stones_after_blinks =
       0..24
       |> Enum.reduce(stones, fn _, stones ->
         blink(stones)
       end)
 
-    IO.inspect(length(stones_after_blinks))
+    IO.puts("Part 1: #{length(stones_after_blinks)}")
+  end
+
+  def blink_part2(stones) do
+    stones
+    |> Enum.reduce(Map.new(), fn {stone, count_before}, stones ->
+      case apply_rules(stone) do
+        [stone1, stone2] ->
+          stones
+          |> Map.update(stone1, count_before, fn count -> count + count_before end)
+          |> Map.update(stone2, count_before, fn count -> count + count_before end)
+
+        stone ->
+          stones
+          |> Map.update(stone, count_before, fn count -> count + count_before end)
+      end
+    end)
   end
 
   def blink(stones) do
